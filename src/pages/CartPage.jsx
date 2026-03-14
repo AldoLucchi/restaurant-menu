@@ -7,15 +7,17 @@ import { ArrowLeft, ShoppingCart, Send } from 'lucide-react'
 function CartPage() {
   const { token } = useParams()
   const { state } = useLocation()
-  const navigate = useNavigate()
+  const navigate  = useNavigate()
 
-  const [cart, setCart]         = useState(state?.cart || [])
-  const [customerName, setName] = useState('')
-  const [notes, setNotes]       = useState('')
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState(null)
+  const [cart,         setCart]   = useState(state?.cart || [])
+  const [customerName, setName]   = useState('')
+  const [notes,        setNotes]  = useState('')
+  const [payment,      setPayment] = useState(state?.settings?.payment_methods?.[0] || 'cash')
+  const [loading,      setLoading] = useState(false)
+  const [error,        setError]  = useState(null)
 
-  const table = state?.table
+  const table    = state?.table
+  const settings = state?.settings
 
   const updateQty = (id, delta) => {
     setCart(prev => prev
@@ -28,13 +30,19 @@ function CartPage() {
 
   const handleOrder = async () => {
     if (cart.length === 0) return
+    if (!payment) {
+      setError('Please select a payment method.')
+      return
+    }
     setLoading(true)
     setError(null)
     try {
       const res = await placeOrder({
-        table_id:      table.id,
-        customer_name: customerName || null,
-        notes:         notes || null,
+        type:           'dine_in',
+        table_id:       table.id,
+        customer_name:  customerName || null,
+        notes:          notes || null,
+        payment_method: payment,
         items: cart.map(i => ({
           product_id: i.id,
           quantity:   i.quantity,
@@ -60,10 +68,7 @@ function CartPage() {
       {/* Header */}
       <nav className="sticky top-0 z-20 bg-white border-b shadow-sm">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="text-gray-500 hover:text-gray-800 transition"
-          >
+          <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-gray-800 transition">
             <ArrowLeft size={20} />
           </button>
           <div className="flex-1">
@@ -123,6 +128,28 @@ function CartPage() {
             className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm
                        focus:outline-none focus:border-red-400 resize-none"
           />
+        </div>
+
+        {/* Payment method */}
+        <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
+          <label className="block text-sm font-semibold text-gray-700 mb-3">
+            Payment Method
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {(settings?.payment_methods ?? ['cash']).map(method => (
+              <button
+                key={method}
+                type="button"
+                onClick={() => setPayment(method)}
+                className={`py-2 px-3 rounded-xl border text-sm font-medium transition
+                  ${payment === method
+                    ? 'border-red-500 bg-red-50 text-red-500'
+                    : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+              >
+                {method}
+              </button>
+            ))}
+          </div>
         </div>
 
         {error && (
