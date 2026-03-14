@@ -8,14 +8,8 @@ const api = axios.create({
     },
 })
 
-export const getTableByToken = (token) =>
-    api.get(`/tables/${token}`)
-
-export const getProducts = () =>
-    api.get('/products')
-
-export const placeOrder = (data) =>
-    api.post('/orders', data)
-
-export const getOrder = (id) =>
-    api.get(`/orders/${id}`)
+export const getSettings     = ()      => api.get('/settings')
+export const getTableByToken = (token) => api.get(`/tables/${token}`)
+export const getProducts     = ()      => api.get('/products')
+export const placeOrder      = (data)  => api.post('/orders', data)
+export const getOrder        = (id)    => api.get(`/orders/${id}`)
